@@ -19,7 +19,7 @@ Las carpetas que encontrarás contienen la siguiente información:
 - Carpeta `scripts/` - Contiene los scripts de automatización en Bash y PowerShell.
 - Carpeta `terraform/` - Contiene el código fuente de la infraestructura como código.
 
-## Documentación
+##  📚 Documentación
 
 A continuación tienes los enlaces para acceder a la documentación del proyecto:
 
