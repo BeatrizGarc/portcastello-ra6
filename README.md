@@ -27,6 +27,12 @@ A continuación tienes los enlaces para acceder a la documentación del proyecto
 - [Mapa Mental](docs/08_MAPA_MENTAL.txt)
 - [Quick Reference](docs/09_QUICK_REFERENCE.md)
 
-## Módulo
+## Práctica
 
-**RA6** - Implanta organizaciones en la nube analizando las características de los servicios disponibles.
+Accede directamente a los recursos de la práctica:
+
+- [Enunciado de la Tarea](docs/02_ENUNCIADO_TAREA.md)
+- [Checklist de Entrega](docs/04_CHECKLIST_ENTREGA.md)
+- [Rúbrica de Evaluación](docs/05_RUBRICA_EVALUACION.md)
+- [Código Terraform](terraform/)
+- [Scripts](scripts/)
