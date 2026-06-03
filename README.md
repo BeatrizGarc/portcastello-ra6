@@ -1,2 +1,32 @@
 # portcastello-ra6
 Proyecto educativo para el módulo de Sistemas Operativos en Red
+
+## Estructura del repositorio
+
+Este repositorio está en continua evolución. Una vez clonado, puedes actualizarlo con `git pull`.
+
+Las carpetas que encontrarás contienen la siguiente información:
+
+- Carpeta `docs/` - Contiene toda la documentación del proyecto: enunciado, análisis, rúbrica y checklists.
+- Carpeta `imagenes/` - Contiene las imágenes utilizadas en los ficheros README.
+- Carpeta `modules/` - Contiene los módulos reutilizables de Terraform.
+- Carpeta `scripts/` - Contiene los scripts de automatización en Bash y PowerShell.
+- Carpeta `terraform/` - Contiene el código fuente de la infraestructura como código.
+
+## Documentación
+
+A continuación tienes los enlaces para acceder a la documentación del proyecto:
+
+- [Análisis Detallado](docs/01_ANALISIS_DETALLADO.md)
+- [Enunciado de la Tarea](docs/02_ENUNCIADO_TAREA.md)
+- [Índice de Documentación](docs/03_INDICE_DOCUMENTACION.md)
+- [Checklist de Entrega](docs/04_CHECKLIST_ENTREGA.md)
+- [Rúbrica de Evaluación](docs/05_RUBRICA_EVALUACION.md)
+- [Resumen Ejecutivo](docs/06_RESUMEN_EJECUTIVO.md)
+- [Conclusión](docs/07_CONCLUSION.txt)
+- [Mapa Mental](docs/08_MAPA_MENTAL.txt)
+- [Quick Reference](docs/09_QUICK_REFERENCE.md)
+
+## Módulo
+
+**RA6** - Implanta organizaciones en la nube analizando las características de los servicios disponibles.
