@@ -7,7 +7,7 @@
 
 Proyecto educativo para el módulo de Sistemas Operativos en Red
 
-## Estructura del repositorio
+## 📊 Estructura del repositorio
 
 Este repositorio está en continua evolución. Una vez clonado, puedes actualizarlo con `git pull`.
 
