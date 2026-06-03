@@ -33,8 +33,8 @@ A continuación tienes los enlaces para acceder a la documentación del proyecto
 - [Mapa Mental](docs/08_MAPA_MENTAL.txt)
 - [Quick Reference](docs/09_QUICK_REFERENCE.md)
 
+![Práctica](https://img.shields.io/badge/Pr%C3%A1ctica-FF6B6B?style=for-the-badge&logo=bookstack&logoColor=white)
 ## Práctica
-
 Accede directamente a los recursos de la práctica:
 
 - [Enunciado de la Tarea](docs/02_ENUNCIADO_TAREA.md)
