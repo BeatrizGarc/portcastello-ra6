@@ -7,7 +7,7 @@
 
 Proyecto educativo para el módulo de Sistemas Operativos en Red
 
-## 📊 Estructura del repositorio
+## 📊 Estructura del repositorio    ![Estructura](https://img.shields.io/badge/Estructura-0078D4?style=for-the-badge&logo=files&logoColor=white)
 
 Este repositorio está en continua evolución. Una vez clonado, puedes actualizarlo con `git pull`.
 
@@ -19,7 +19,7 @@ Las carpetas que encontrarás contienen la siguiente información:
 - Carpeta `scripts/` - Contiene los scripts de automatización en Bash y PowerShell.
 - Carpeta `terraform/` - Contiene el código fuente de la infraestructura como código.
 
-##  📚 Documentación
+##  📚 Documentación    ![Documentación](https://img.shields.io/badge/Documentaci%C3%B3n-28A745?style=for-the-badge&logo=readthedocs&logoColor=white)
 
 A continuación tienes los enlaces para acceder a la documentación del proyecto:
 
@@ -33,8 +33,8 @@ A continuación tienes los enlaces para acceder a la documentación del proyecto
 - [Mapa Mental](docs/08_MAPA_MENTAL.txt)
 - [Quick Reference](docs/09_QUICK_REFERENCE.md)
 
-![Práctica](https://img.shields.io/badge/Pr%C3%A1ctica-FF6B6B?style=for-the-badge&logo=bookstack&logoColor=white)
-## Práctica
+
+## 🛠️ Práctica   ![Práctica](https://img.shields.io/badge/Pr%C3%A1ctica-FF6B6B?style=for-the-badge&logo=bookstack&logoColor=white)
 Accede directamente a los recursos de la práctica:
 
 - [Enunciado de la Tarea](docs/02_ENUNCIADO_TAREA.md)
