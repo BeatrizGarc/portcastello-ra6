@@ -6,7 +6,7 @@ Se han creado **6 documentos** que forman la estructura completa de la tarea edu
 
 ---
 
-## 1. 📋 ENUNCIADO_TAREA.md ⭐ PRINCIPAL
+## 1. 📋 ENUNCIADO_TAREA ⭐ PRINCIPAL
 **Tipo:** Enunciado de tarea  
 **Páginas:** ~40  
 **Audiencia:** Estudiantes, profesores  
@@ -32,7 +32,7 @@ Se han creado **6 documentos** que forman la estructura completa de la tarea edu
 
 ---
 
-## 2. 🔍 ANALISIS_DETALLADO.md
+## 2. 🔍 ANALISIS_DETALLADO
 **Tipo:** Análisis técnico de referencia  
 **Páginas:** ~50  
 **Audiencia:** Estudiantes (para ayuda), profesores  
@@ -66,7 +66,7 @@ Se han creado **6 documentos** que forman la estructura completa de la tarea edu
 
 ---
 
-## 3. 📝 RUBRICA_EVALUACION.md
+## 3. 📝 RUBRICA_EVALUACION
 **Tipo:** Rúbrica de evaluación con criterios  
 **Páginas:** ~30  
 **Audiencia:** Profesores, estudiantes (autoevaluación)  
@@ -94,7 +94,7 @@ Se han creado **6 documentos** que forman la estructura completa de la tarea edu
 
 ---
 
-## 4. 🏗️ RESUMEN_EJECUTIVO.md
+## 4. 🏗️ RESUMEN_EJECUTIVO
 **Tipo:** Guía ejecutiva y manual de uso  
 **Páginas:** ~25  
 **Audiencia:** Profesores (planificación), estudiantes (orientación)  
@@ -123,7 +123,7 @@ Se han creado **6 documentos** que forman la estructura completa de la tarea edu
 
 ---
 
-## 5. ⚡ QUICK_REFERENCE.md
+## 5. ⚡ QUICK_REFERENCE
 **Tipo:** Guía de referencia rápida  
 **Páginas:** ~20  
 **Audiencia:** Estudiantes principalmente  
@@ -155,7 +155,7 @@ Se han creado **6 documentos** que forman la estructura completa de la tarea edu
 
 ---
 
-## 6. 📚 INDICE_DOCUMENTACION.md (Este archivo)
+## 6. 📚 INDICE_DOCUMENTACION.(Este archivo)
 **Tipo:** Índice y guía de navegación  
 **Páginas:** ~15  
 **Audiencia:** Todos  
