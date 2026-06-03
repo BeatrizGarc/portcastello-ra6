@@ -1,4 +1,4 @@
-# portcastello-ra6
+# PORTCASTELLO
 Proyecto educativo para el módulo de Sistemas Operativos en Red
 
 ## Estructura del repositorio
