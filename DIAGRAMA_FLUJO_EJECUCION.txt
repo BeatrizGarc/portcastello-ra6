@@ -1,0 +1,425 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║                    FLUJO DE EJECUCIÓN TERRAFORM DETALLADO                    ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PASO 1: terraform init                                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Entrada:                          Proceso:                                 │
+│  ┌──────────────────────────┐      ┌──────────────────────────────────┐   │
+│  │ main.tf                  │      │ 1. Lee main.tf                   │   │
+│  │ └─ required_providers    │  →   │ 2. Identifica: aws >= 4.44.0     │   │
+│  │    └─ aws >= 4.44.0      │      │ 3. Descarga provider AWS         │   │
+│  └──────────────────────────┘      │ 4. Genera .terraform.lock.hcl   │   │
+│                                     │ 5. Crea carpeta .terraform/      │   │
+│  backend.tf                         │                                  │   │
+│  └─ S3 backend config       →       │ 6. Configura backend S3          │   │
+│                                     │ 7. Se conecta a S3 si existe     │   │
+│                                     └──────────────────────────────────┘   │
+│                                                                             │
+│  Salida:                                                                    │
+│  ├─ .terraform/ (carpeta con providers)                                    │
+│  ├─ .terraform.lock.hcl (versiones bloqueadas)                             │
+│  └─ terraform.tfstate (local o en S3)                                      │
+│                                                                             │
+│  Status: ✅ COMPLETADO                                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PASO 2: terraform plan                                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Entrada:                                                                   │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐               │
+│  │ variables.tf   │  │ terraform      │  │ main.tf        │               │
+│  │                │  │ .tfvars        │  │                │               │
+│  │ • aws_region   │  │                │  │ • module       │               │
+│  │ • vpc_cidr     │  │ project_name   │  │   network      │               │
+│  │ • key_name     │  │ tipo_servidor  │  │ • module       │               │
+│  │ • etc.         │  │ • etc.         │  │   compute      │               │
+│  └────────────────┘  └────────────────┘  └────────────────┘               │
+│         ↓                    ↓                    ↓                          │
+│  ┌────────────────────────────────────────────────────────────┐            │
+│  │ Terraform Process:                                         │            │
+│  │                                                            │            │
+│  │ 1. Carga variables.tf (define variables)                  │            │
+│  │ 2. Carga terraform.tfvars (proporciona valores)           │            │
+│  │ 3. Resuelve: var.project_name = "portcastello"           │            │
+│  │ 4. Resuelve: var.tipo_servidor_ad = "ubuntu"             │            │
+│  │ 5. Lee main.tf                                            │            │
+│  │ 6. Ejecuta: module "network" { ... }                      │            │
+│  │    ├─ Lee: modules/network/variables.tf                  │            │
+│  │    ├─ Lee: modules/network/main.tf                       │            │
+│  │    ├─ Crea recursos lógicos (VPC, subnets, etc)          │            │
+│  │    └─ Ejecuta: modules/network/outputs.tf                │            │
+│  │                                                            │            │
+│  │ 7. Ejecuta: module "compute" { ... }                      │            │
+│  │    ├─ Recibe outputs de network (vpc_id, subnet_ids)     │            │
+│  │    ├─ Lee: modules/compute/variables.tf                  │            │
+│  │    ├─ Lee: modules/compute/main.tf                       │            │
+│  │    ├─ Evalúa locals:                                      │            │
+│  │    │   dc_es_windows = (tipo_servidor_ad == "windows")   │            │
+│  │    │   dc_ami = (dc_es_windows ? windows : ubuntu)       │            │
+│  │    ├─ Lee data sources (busca AMI Ubuntu más reciente)   │            │
+│  │    ├─ Lee: modules/compute/security.tf                   │            │
+│  │    ├─ Crea 4 Security Groups lógicos                      │            │
+│  │    ├─ Crea 5 EC2 instances lógicas                        │            │
+│  │    └─ Ejecuta: modules/compute/outputs.tf                │            │
+│  │                                                            │            │
+│  │ 8. Ejecuta: outputs.tf (root)                             │            │
+│  │    └─ Prepara outputs para mostrar al usuario            │            │
+│  │                                                            │            │
+│  │ 9. Conecta a AWS (API)                                    │            │
+│  │    └─ Consulta: ¿Existen estos recursos?                 │            │
+│  │                                                            │            │
+│  │ 10. Compara: Recursos lógicos vs Reales en AWS            │            │
+│  │     ├─ Si no existen → Crear (verde: +)                  │            │
+│  │     ├─ Si existen pero cambian → Actualizar (amarillo: ~)│            │
+│  │     └─ Si deben eliminar → Destruir (rojo: -)            │            │
+│  │                                                            │            │
+│  └────────────────────────────────────────────────────────────┘            │
+│                                                                             │
+│  Salida:                                                                    │
+│  ┌─────────────────────────────────────┐                                  │
+│  │ Plan: 30 to add, 0 to change        │                                  │
+│  │                                     │                                  │
+│  │ + aws_vpc.main                      │                                  │
+│  │ + aws_subnet.public[0]              │                                  │
+│  │ + aws_subnet.public[1]              │                                  │
+│  │ + aws_subnet.private[0]             │                                  │
+│  │ + aws_subnet.private[1]             │                                  │
+│  │ + aws_internet_gateway.main         │                                  │
+│  │ + aws_nat_gateway.main              │                                  │
+│  │ + aws_route_table.public            │                                  │
+│  │ + aws_route_table.private           │                                  │
+│  │ + aws_security_group.dc             │                                  │
+│  │ + aws_security_group.linux_server   │                                  │
+│  │ + aws_security_group.win_cli        │                                  │
+│  │ + aws_security_group.linux_cli      │                                  │
+│  │ + aws_instance.dc                   │                                  │
+│  │ + aws_instance.linux_server         │                                  │
+│  │ + aws_instance.win_cli              │                                  │
+│  │ + aws_instance.linux_cli            │                                  │
+│  │ + aws_eip.win_cli                   │                                  │
+│  │ + aws_eip.linux_cli                 │                                  │
+│  │ + ... (11 más)                      │                                  │
+│  │                                     │                                  │
+│  │ Saved to tfplan                     │                                  │
+│  └─────────────────────────────────────┘                                  │
+│                                                                             │
+│  Status: ✅ COMPLETADO                                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PASO 3: terraform apply                                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Entrada:                                                                   │
+│  • tfplan (binario con lo que crear)                                        │
+│  • AWS Credentials (CLI configurado)                                        │
+│                                                                             │
+│  Proceso: Crear recursos en AWS en orden de dependencias                    │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────┐           │
+│  │ FASE 1: CREAR VPC Y RED (modules/network/main.tf)          │           │
+│  ├─────────────────────────────────────────────────────────────┤           │
+│  │                                                             │           │
+│  │ 1. CreateVpc                                               │           │
+│  │    aws_vpc.main                                            │           │
+│  │    CIDR: 10.0.0.0/16                                       │           │
+│  │    ↓ Result: vpc-xxxxxx                                    │           │
+│  │                                                             │           │
+│  │ 2. CreateSubnet (x4)                                       │           │
+│  │    aws_subnet.public[0]   → 10.0.1.0/24   (AZ-a)           │           │
+│  │    aws_subnet.public[1]   → 10.0.2.0/24   (AZ-b)           │           │
+│  │    aws_subnet.private[0]  → 10.0.101.0/24 (AZ-a)           │           │
+│  │    aws_subnet.private[1]  → 10.0.102.0/24 (AZ-b)           │           │
+│  │    ↓ Result: subnet-xxxxx (x4)                             │           │
+│  │                                                             │           │
+│  │ 3. CreateInternetGateway                                   │           │
+│  │    aws_internet_gateway.main                               │           │
+│  │    ↓ Result: igw-xxxxx                                     │           │
+│  │                                                             │           │
+│  │ 4. AttachInternetGateway                                   │           │
+│  │    Vincula IGW a VPC                                       │           │
+│  │                                                             │           │
+│  │ 5. AllocateAddress                                         │           │
+│  │    aws_eip.nat                                             │           │
+│  │    IP: 54.xxx.xxx.xxx (pública)                            │           │
+│  │                                                             │           │
+│  │ 6. CreateNatGateway                                        │           │
+│  │    aws_nat_gateway.main                                    │           │
+│  │    Ubicación: public[0]                                    │           │
+│  │    ↓ Result: nat-xxxxx                                     │           │
+│  │                                                             │           │
+│  │ 7. CreateRouteTable (x2)                                   │           │
+│  │    aws_route_table.public                                  │           │
+│  │    aws_route_table.private                                 │           │
+│  │    ↓ Result: rtb-xxxxx (x2)                                │           │
+│  │                                                             │           │
+│  │ 8. CreateRoute (x2)                                        │           │
+│  │    Pública:  0.0.0.0/0 → IGW                               │           │
+│  │    Privada: 0.0.0.0/0 → NAT                                │           │
+│  │                                                             │           │
+│  │ 9. AssociateRouteTable (x4)                                │           │
+│  │    Vincula subredes con tablas de rutas                    │           │
+│  │                                                             │           │
+│  │ ✅ FASE 1 COMPLETADA (tiempo: 1-2 minutos)                │           │
+│  │                                                             │           │
+│  └─────────────────────────────────────────────────────────────┘           │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────┐           │
+│  │ FASE 2: CREAR SECURITY GROUPS (modules/compute/security.tf)│           │
+│  ├─────────────────────────────────────────────────────────────┤           │
+│  │                                                             │           │
+│  │ 1. CreateSecurityGroup (x4)                                │           │
+│  │    - aws_security_group.dc (AD/Samba)                      │           │
+│  │      Ingress: SSH, DNS, Kerberos, LDAP, SMB, RDP          │           │
+│  │      Egress: All                                           │           │
+│  │                                                             │           │
+│  │    - aws_security_group.linux_server                       │           │
+│  │      Ingress: SSH, SMB, NFS                                │           │
+│  │      Egress: All                                           │           │
+│  │                                                             │           │
+│  │    - aws_security_group.win_cli                            │           │
+│  │      Ingress: RDP (0.0.0.0/0), All from VPC               │           │
+│  │      Egress: All                                           │           │
+│  │                                                             │           │
+│  │    - aws_security_group.linux_cli                          │           │
+│  │      Ingress: SSH (0.0.0.0/0), All from VPC               │           │
+│  │      Egress: All                                           │           │
+│  │                                                             │           │
+│  │    ↓ Result: sg-xxxxx (x4)                                 │           │
+│  │                                                             │           │
+│  │ 2. CreateSecurityGroupIngress + Egress (x30+)              │           │
+│  │    Define reglas de firewall                               │           │
+│  │                                                             │           │
+│  │ ✅ FASE 2 COMPLETADA (tiempo: 30 segundos)                │           │
+│  │                                                             │           │
+│  └─────────────────────────────────────────────────────────────┘           │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────┐           │
+│  │ FASE 3: CREAR INSTANCIAS EC2 (modules/compute/main.tf)    │           │
+│  ├─────────────────────────────────────────────────────────────┤           │
+│  │                                                             │           │
+│  │ DATA SOURCES FIRST: Buscar AMI más reciente                │           │
+│  │ ├─ DescribeImages: Ubuntu 22.04 Jammy                      │           │
+│  │ │  ↓ Result: ami-xxxxxxxx (versión más reciente)          │           │
+│  │ │                                                          │           │
+│  │ └─ DescribeImages: Windows Server 2019                     │           │
+│  │    ↓ Result: ami-yyyyyyyy (versión más reciente)          │           │
+│  │                                                            │           │
+│  │ INSTANCIA 1: DC (Controlador de Dominio)                   │           │
+│  │ ├─ RunInstances                                            │           │
+│  │ │  AMI: ami-xxxxxxxx (Ubuntu - por default)                │           │
+│  │ │  Type: t3.small                                          │           │
+│  │ │  Subnet: private[0]                                      │           │
+│  │ │  PrivateIP: 10.0.101.10 (fija)                           │           │
+│  │ │  SG: sg-dc                                               │           │
+│  │ │  UserData: file(scripts/init_server_dc.sh)               │           │
+│  │ │  RootVolume: 20GB gp3                                    │           │
+│  │ │  ↓ Result: i-dc-xxxxx                                    │           │
+│  │ │  ↓ Ejecuta: scripts/init_server_dc.sh                    │           │
+│  │ │           (instala Samba, configura DC)                 │           │
+│  │ │                                                          │           │
+│  │ │  ⏱️ Tiempo: 2-3 minutos (boot + script)                 │           │
+│  │ │                                                          │           │
+│  │ └─ TagInstances: Name = "portcastello-dc"                  │           │
+│  │                                                            │           │
+│  │ INSTANCIA 2: Servidor Linux Miembro                        │           │
+│  │ ├─ RunInstances                                            │           │
+│  │ │  AMI: ami-xxxxxxxx (Ubuntu)                              │           │
+│  │ │  Type: t3.small                                          │           │
+│  │ │  Subnet: private[0]                                      │           │
+│  │ │  PrivateIP: 10.0.101.20 (fija)                           │           │
+│  │ │  SG: sg-linux-server                                     │           │
+│  │ │  UserData: file(scripts/init_linux_server.sh)            │           │
+│  │ │  RootVolume: 20GB gp3                                    │           │
+│  │ │  ↓ Result: i-linsrv-xxxxx                                │           │
+│  │ │  ↓ Ejecuta: scripts/init_linux_server.sh                 │           │
+│  │ │           (instala Samba, se une al dominio)            │           │
+│  │ │                                                          │           │
+│  │ │  ⏱️ Tiempo: 2-3 minutos                                 │           │
+│  │ │                                                          │           │
+│  │ └─ TagInstances: Name = "portcastello-linux-server"        │           │
+│  │                                                            │           │
+│  │ INSTANCIA 3: Cliente Windows (Pública)                     │           │
+│  │ ├─ RunInstances                                            │           │
+│  │ │  AMI: ami-yyyyyyyy (Windows Server 2019)                 │           │
+│  │ │  Type: t3.medium                                         │           │
+│  │ │  Subnet: public[0]                                       │           │
+│  │ │  SG: sg-win-cli                                          │           │
+│  │ │  UserData: file(scripts/init_win_cli.ps1)                │           │
+│  │ │  RootVolume: 30GB gp3                                    │           │
+│  │ │  ↓ Result: i-wincli-xxxxx                                │           │
+│  │ │  ↓ Ejecuta: scripts/init_win_cli.ps1                     │           │
+│  │ │           (configura red, intenta unirse al dominio)    │           │
+│  │ │                                                          │           │
+│  │ │  ⏱️ Tiempo: 4-5 minutos (Windows boot es lento)         │           │
+│  │ │                                                          │           │
+│  │ └─ TagInstances: Name = "portcastello-win-cli"             │           │
+│  │                                                            │           │
+│  │ INSTANCIA 4: Cliente Linux (Pública)                       │           │
+│  │ ├─ RunInstances                                            │           │
+│  │ │  AMI: ami-xxxxxxxx (Ubuntu)                              │           │
+│  │ │  Type: t3.small                                          │           │
+│  │ │  Subnet: public[1]                                       │           │
+│  │ │  SG: sg-linux-cli                                        │           │
+│  │ │  UserData: file(scripts/init_linux_cli.sh)               │           │
+│  │ │  RootVolume: 15GB gp3                                    │           │
+│  │ │  ↓ Result: i-lincli-xxxxx                                │           │
+│  │ │  ↓ Ejecuta: scripts/init_linux_cli.sh                    │           │
+│  │ │           (configura DNS, se une al dominio)            │           │
+│  │ │                                                          │           │
+│  │ │  ⏱️ Tiempo: 2-3 minutos                                 │           │
+│  │ │                                                          │           │
+│  │ └─ TagInstances: Name = "portcastello-linux-cli"           │           │
+│  │                                                            │           │
+│  │ ✅ FASE 3 COMPLETADA (tiempo: 5-10 minutos)               │           │
+│  │                                                            │           │
+│  └─────────────────────────────────────────────────────────────┘           │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────┐           │
+│  │ FASE 4: CREAR ELASTIC IPs (modules/compute/main.tf)       │           │
+│  ├─────────────────────────────────────────────────────────────┤           │
+│  │                                                             │           │
+│  │ 1. AssociateAddress                                        │           │
+│  │    aws_eip.win_cli                                         │           │
+│  │    Vincula a: i-wincli-xxxxx                               │           │
+│  │    ↓ Result: 54.123.45.67 (IP pública fija)                │           │
+│  │                                                             │           │
+│  │ 2. AssociateAddress                                        │           │
+│  │    aws_eip.linux_cli                                       │           │
+│  │    Vincula a: i-lincli-xxxxx                               │           │
+│  │    ↓ Result: 54.123.45.68 (IP pública fija)                │           │
+│  │                                                             │           │
+│  │ ✅ FASE 4 COMPLETADA (tiempo: 30 segundos)                │           │
+│  │                                                             │           │
+│  └─────────────────────────────────────────────────────────────┘           │
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────┐           │
+│  │ FASE 5: ACTUALIZAR STATE (backend.tf)                      │           │
+│  ├─────────────────────────────────────────────────────────────┤           │
+│  │                                                             │           │
+│  │ 1. PutObject (S3)                                           │           │
+│  │    Guarda: tfstate en S3 bucket                             │           │
+│  │    Bucket: portcastello-tfstate-202605                     │           │
+│  │    Key: ra6/portcastello.tfstate                            │           │
+│  │    Encryption: AES256                                      │           │
+│  │                                                             │           │
+│  │ 2. UpdateLock (DynamoDB)                                    │           │
+│  │    Libera: Lock de DynamoDB                                │           │
+│  │    Tabla: portcastello-tf-locks                             │           │
+│  │                                                             │           │
+│  │ ✅ FASE 5 COMPLETADA                                       │           │
+│  │                                                             │           │
+│  └─────────────────────────────────────────────────────────────┘           │
+│                                                                             │
+│  Salida:                                                                    │
+│  ┌─────────────────────────────────────────────────────────────┐           │
+│  │ Apply complete! Resources: 30 added, 0 changed, 0 destroyed │           │
+│  │                                                             │           │
+│  │ Outputs:                                                   │           │
+│  │                                                             │           │
+│  │ ip_dc_privada = "10.0.101.10"                              │           │
+│  │ ip_publica_win_cli = "54.123.45.67"                        │           │
+│  │ ip_publica_linux_cli = "54.123.45.68"                      │           │
+│  │ comando_rdp = "mstsc /v:54.123.45.67"                      │           │
+│  │ comando_ssh = "ssh -i labsuser.pem ubuntu@54.123.45.68"    │           │
+│  │                                                             │           │
+│  └─────────────────────────────────────────────────────────────┘           │
+│                                                                             │
+│  ⏱️ TIEMPO TOTAL: 8-15 minutos                                            │
+│                                                                             │
+│  Status: ✅ COMPLETADO                                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PASO 4: terraform output                                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Lee: tfstate (estado) + outputs.tf (definiciones)                          │
+│                                                                             │
+│  Salida:                                                                    │
+│  ┌─────────────────────────────────────────────────────────────┐           │
+│  │ ip_dc_privada = "10.0.101.10"                              │           │
+│  │ ip_publica_win_cli = "54.123.45.67"                        │           │
+│  │ ip_publica_linux_cli = "54.123.45.68"                      │           │
+│  │ comando_rdp = "mstsc /v:54.123.45.67"                      │           │
+│  │ comando_ssh = "ssh -i labsuser.pem ubuntu@54.123.45.68"    │           │
+│  │                                                             │           │
+│  │ Cópia estos comandos directamente en tu terminal           │           │
+│  └─────────────────────────────────────────────────────────────┘           │
+│                                                                             │
+│  Status: ✅ COMPLETADO                                                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║                      DESPUÉS DE terraform apply:                             ║
+║                                                                               ║
+║  • Infraestructura completa en AWS                                           ║
+║  • 5 instancias EC2 en ejecución                                             ║
+║  • Scripts ejecutándose en cada instancia                                    ║
+║  • Servidores configurándose automáticamente                                 ║
+║  • DNS, Samba/AD estableciéndose                                             ║
+║                                                                               ║
+║  TIEMPOS APROXIMADOS PARA ESTABILIDAD:                                       ║
+║  ├─ 2-3 min: Instancias lisas para conectar                                 ║
+║  ├─ 5-10 min: Scripts acabados, configuración en progreso                   ║
+║  ├─ 15-20 min: Samba/AD totalmente operativo                                │
+║  └─ 20-30 min: Clientes unidos al dominio, sistema listo                    │
+║                                                                               ║
+║  PARA CONECTARSE:                                                            ║
+║  ├─ RDP: mstsc /v:54.123.45.67                                              ║
+║  └─ SSH: ssh -i labsuser.pem ubuntu@54.123.45.68                            ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PASO FINAL: terraform destroy (cuando termines)                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Lee: tfstate (sabe qué recursos eliminar)                                  │
+│                                                                             │
+│  Elimina en ORDEN INVERSO:                                                  │
+│  1. Instancias EC2                                                          │
+│  2. Elastic IPs                                                             │
+│  3. Security Groups                                                         │
+│  4. Route Table Associations                                                │
+│  5. Route Tables                                                            │
+│  6. NAT Gateway                                                             │
+│  7. Elastic IP del NAT                                                      │
+│  8. Internet Gateway                                                        │
+│  9. Subredes                                                                │
+│  10. VPC                                                                    │
+│                                                                             │
+│  Actualiza: tfstate en S3                                                   │
+│                                                                             │
+│  Status: ✅ COMPLETADO - Infraestructura eliminada                         │
+│  Tiempo: 2-5 minutos                                                        │
+│  Costo: $0                                                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                            RESUMEN DEL FLUJO                                 ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  terraform init   →  Configuración (1 min)                                   ║
+║  terraform plan   →  Cálculo de cambios (2 min)                              ║
+║  terraform apply  →  Crear infraestructura (8-15 min)                        ║
+║  terraform output →  Ver IPs (instante)                                      ║
+║  terraform destroy → Eliminar todo (2-5 min)                                 ║
+║                                                                               ║
+║  TOTAL: 15-35 minutos para crear + 5-20 min estabilizar                      ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
